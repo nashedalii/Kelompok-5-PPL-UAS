@@ -1,0 +1,130 @@
+{% extends 'SewaSmash/base.html' %}
+
+{% block title %}Booking Details - SewaSmash{% endblock %}
+
+{% block extra_css %}
+<style>
+    .booking-detail-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .booking-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #eee;
+    }
+    .booking-info {
+        background-color: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 5px;
+        margin-bottom: 2rem;
+    }
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #eee;
+    }
+    .info-row:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    .status-badge {
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+    }
+    .booking-actions {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid #eee;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="booking-detail-container">
+        <div class="booking-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2><i class="fas fa-calendar-check me-2"></i>Booking Details</h2>
+                <span class="badge status-badge {% if booking.status == 'PENDING' %}bg-warning
+                                          {% elif booking.status == 'APPROVED' %}bg-success
+                                          {% else %}bg-danger{% endif %}">
+                    {{ booking.get_status_display }}
+                </span>
+            </div>
+            <p class="text-muted mb-0">Booking ID: #{{ booking.id }}</p>
+        </div>
+
+        <div class="booking-info">
+            <h4 class="mb-4">Customer Information</h4>
+            <div class="info-row">
+                <strong>Name:</strong>
+                <span>{{ booking.customer_name }}</span>
+            </div>
+            <div class="info-row">
+                <strong>Phone Number:</strong>
+                <span>{{ booking.phone_number }}</span>
+            </div>
+        </div>
+
+        <div class="booking-info">
+            <h4 class="mb-4">Booking Details</h4>
+            <div class="info-row">
+                <strong>Court:</strong>
+                <span>{{ booking.court.name }}</span>
+            </div>
+            <div class="info-row">
+                <strong>Date:</strong>
+                <span>{{ booking.booking_date }}</span>
+            </div>
+            <div class="info-row">
+                <strong>Time:</strong>
+                <span>{{ booking.start_time }} ({{ booking.duration }} hour{{ booking.duration|pluralize }})</span>
+            </div>
+            <div class="info-row">
+                <strong>Total Price:</strong>
+                <span>Rp {{ booking.total_price }}</span>
+            </div>
+            <div class="info-row">
+                <strong>Created At:</strong>
+                <span>{{ booking.created_at }}</span>
+            </div>
+            <div class="info-row">
+                <strong>Last Updated:</strong>
+                <span>{{ booking.updated_at }}</span>
+            </div>
+        </div>
+
+        {% if user.is_authenticated %}
+        <div class="booking-actions">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <a href="{% url 'admin_booking_edit' booking.id %}" class="btn btn-primary me-2">
+                        <i class="fas fa-edit me-1"></i>Edit Booking
+                    </a>
+                    <a href="{% url 'admin_booking_delete' booking.id %}" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i>Delete
+                    </a>
+                </div>
+                <a href="{% url 'booking_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to List
+                </a>
+            </div>
+        </div>
+        {% else %}
+        <div class="booking-actions text-center">
+            <a href="{% url 'homepage' %}" class="btn btn-primary">
+                <i class="fas fa-home me-1"></i>Return to Homepage
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

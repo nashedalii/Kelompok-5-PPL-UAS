@@ -1,0 +1,139 @@
+{% extends 'SewaSmash/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Book a Court - SewaSmash{% endblock %}
+
+{% block extra_css %}
+<style>
+    .booking-info {
+        background-color: #e3f2fd;
+        padding: 1.5rem;
+        border-radius: 5px;
+        margin-bottom: 2rem;
+    }
+    .booking-info ul {
+        margin-bottom: 0;
+    }
+    .booking-info i {
+        color: #1a237e;
+        margin-right: 0.5rem;
+    }
+    .time-slot-disabled {
+        color: #6c757d;
+        background-color: #e9ecef;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Booking Information -->
+            <div class="booking-info mb-4">
+                <h5><i class="fas fa-info-circle"></i>Booking Information</h5>
+                <ul>
+                    <li>Operating hours: 6:00 AM - 11:00 PM</li>
+                    <li>Booking duration is counted in hours (maximum 4 hours)</li>
+                    <li>Please arrive 15 minutes before your booking time</li>
+                    <li>Cancellation must be made at least 24 hours before the booking time</li>
+                    <li>Payment must be made at the venue before playing</li>
+                </ul>
+            </div>
+
+            <!-- Booking Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fas fa-calendar-plus me-2"></i>Book a Court
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="bookingForm" novalidate>
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.customer_name|as_crispy_field }}
+                                {{ form.phone_number|as_crispy_field }}
+                                {{ form.court|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.booking_date|as_crispy_field }}
+                                {{ form.start_time|as_crispy_field }}
+                                {{ form.duration|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="text-end mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check me-1"></i>Submit Booking
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Set minimum date to today
+        var today = new Date().toISOString().split('T')[0];
+        $('#id_booking_date').attr('min', today);
+
+        // Function to update available time slots
+        function updateTimeSlots() {
+            var date = $('#id_booking_date').val();
+            var court = $('#id_court').val();
+            
+            if (date && court) {
+                // Disable the time slot select while loading
+                var timeSelect = $('#id_start_time');
+                timeSelect.prop('disabled', true);
+                
+                // Make AJAX request to get available time slots
+                $.get(window.location.pathname, {
+                    'date': date,
+                    'court': court,
+                    'check_availability': '1'
+                }).done(function(response) {
+                    // Clear current options
+                    timeSelect.empty();
+                    
+                    // Add an initial "Select time" option
+                    timeSelect.append($('<option>', {
+                        value: '',
+                        text: '- Select time -'
+                    }));
+                    
+                    // Add available time slots
+                    response.available_slots.forEach(function(slot) {
+                        timeSelect.append($('<option>', {
+                            value: slot[0],
+                            text: slot[1]
+                        }));
+                    });
+                    
+                    // Add booked time slots as disabled options
+                    response.booked_slots.forEach(function(slot) {
+                        timeSelect.append($('<option>', {
+                            value: slot[0],
+                            text: slot[1] + ' (Booked)',
+                            disabled: true,
+                            class: 'time-slot-disabled'
+                        }));
+                    });
+                    
+                    // Re-enable the select
+                    timeSelect.prop('disabled', false);
+                });
+            }
+        }
+
+        // Update time slots when date or court changes
+        $('#id_booking_date, #id_court').change(updateTimeSlots);
+    });
+</script>
+{% endblock %} 

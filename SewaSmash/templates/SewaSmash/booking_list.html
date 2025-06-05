@@ -1,0 +1,207 @@
+{% extends 'SewaSmash/base.html' %}
+
+{% block title %}Manage Bookings - SewaSmash{% endblock %}
+
+{% block extra_css %}
+<style>
+    .booking-list-container {
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+    }
+    .filters {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 5px;
+        margin-bottom: 2rem;
+    }
+    .status-badge {
+        font-size: 0.85rem;
+        padding: 0.35rem 0.65rem;
+    }
+    .booking-actions .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+    .booking-row:hover {
+        background-color: #f8f9fa;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-list me-2"></i>Manage Bookings</h2>
+        <div>
+            <a href="{% url 'admin_booking_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i>New Booking
+            </a>
+        </div>
+    </div>
+
+    <div class="booking-list-container">
+        <!-- Filters -->
+        <div class="filters">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="PENDING" {% if request.GET.status == 'PENDING' %}selected{% endif %}>Pending</option>
+                        <option value="APPROVED" {% if request.GET.status == 'APPROVED' %}selected{% endif %}>Approved</option>
+                        <option value="REJECTED" {% if request.GET.status == 'REJECTED' %}selected{% endif %}>Rejected</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="court" class="form-label">Court</label>
+                    <select name="court" id="court" class="form-select">
+                        <option value="">All Courts</option>
+                        {% for court in courts %}
+                        <option value="{{ court.id }}" {% if request.GET.court == court.id|stringformat:"i" %}selected{% endif %}>
+                            {{ court.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="date" class="form-label">Date</label>
+                    <input type="date" class="form-control" id="date" name="date" 
+                           value="{{ request.GET.date|default:'' }}">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter me-1"></i>Apply Filters
+                        </button>
+                        <a href="{% url 'booking_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i>Clear
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Bookings Table -->
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Court</th>
+                        <th>Date & Time</th>
+                        <th>Duration</th>
+                        <th>Total Price</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in bookings %}
+                    <tr class="booking-row">
+                        <td>#{{ booking.id }}</td>
+                        <td>
+                            {{ booking.customer_name }}<br>
+                            <small class="text-muted">{{ booking.phone_number }}</small>
+                        </td>
+                        <td>{{ booking.court.name }}</td>
+                        <td>
+                            {{ booking.booking_date }}<br>
+                            <small class="text-muted">{{ booking.start_time }}</small>
+                        </td>
+                        <td>{{ booking.duration }} hour{{ booking.duration|pluralize }}</td>
+                        <td>Rp {{ booking.total_price }}</td>
+                        <td>
+                            <span class="badge status-badge {% if booking.status == 'PENDING' %}bg-warning
+                                                      {% elif booking.status == 'APPROVED' %}bg-success
+                                                      {% else %}bg-danger{% endif %}">
+                                {{ booking.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="booking-actions">
+                            <div class="btn-group">
+                                <a href="{% url 'booking_detail' booking.id %}" class="btn btn-info" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'admin_booking_edit' booking.id %}" class="btn btn-primary" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'admin_booking_delete' booking.id %}" class="btn btn-danger" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4">
+                            <i class="fas fa-inbox text-muted" style="font-size: 2rem;"></i>
+                            <p class="mb-0 mt-2">No bookings found</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.court %}&court={{ request.GET.court }}{% endif %}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.court %}&court={{ request.GET.court }}{% endif %}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.court %}&court={{ request.GET.court }}{% endif %}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}">
+                            {{ num }}
+                        </a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.court %}&court={{ request.GET.court }}{% endif %}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.court %}&court={{ request.GET.court }}{% endif %}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Set minimum date to today for date filter
+        var today = new Date().toISOString().split('T')[0];
+        $('#date').attr('min', today);
+    });
+</script>
+{% endblock %} 

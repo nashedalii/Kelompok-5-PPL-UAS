@@ -1,0 +1,61 @@
+{% extends 'SewaSmash/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if form.instance.pk %}Edit{% else %}Create{% endif %} Booking - SewaSmash{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fas {% if form.instance.pk %}fa-edit{% else %}fa-plus{% endif %} me-2"></i>
+                        {% if form.instance.pk %}Edit{% else %}Create{% endif %} Booking
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.customer_name|as_crispy_field }}
+                                {{ form.phone_number|as_crispy_field }}
+                                {{ form.court|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.booking_date|as_crispy_field }}
+                                {{ form.start_time|as_crispy_field }}
+                                {{ form.duration|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                {{ form.status|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'booking_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Back to List
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Save Booking
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Set minimum date to today for new bookings
+        var today = new Date().toISOString().split('T')[0];
+        $('#id_booking_date').attr('min', today);
+    });
+</script>
+{% endblock %} 

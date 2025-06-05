@@ -1,0 +1,174 @@
+{% extends 'SewaSmash/base.html' %}
+
+{% block title %}Admin Dashboard - SewaSmash{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: transform 0.2s;
+    }
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    .stats-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+    .stats-number {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    .pending {
+        color: #f57c00;
+    }
+    .approved {
+        color: #43a047;
+    }
+    .total {
+        color: #1a237e;
+    }
+    .quick-actions {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .recent-bookings {
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard</h2>
+        <div>
+            <a href="{% url 'admin_booking_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i>New Booking
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="stats-card">
+                <div class="stats-icon pending">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stats-number">{{ pending_bookings }}</div>
+                <div class="stats-label">Pending Bookings</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card">
+                <div class="stats-icon approved">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="stats-number">{{ today_bookings }}</div>
+                <div class="stats-label">Today's Bookings</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card">
+                <div class="stats-icon total">
+                    <i class="fas fa-table-tennis"></i>
+                </div>
+                <div class="stats-number">{{ total_courts }}</div>
+                <div class="stats-label">Total Courts</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <h4 class="mb-3">Quick Actions</h4>
+        <div class="row">
+            <div class="col-md-3 mb-2">
+                <a href="{% url 'booking_list' %}" class="btn btn-outline-primary w-100">
+                    <i class="fas fa-list me-1"></i>View All Bookings
+                </a>
+            </div>
+            <div class="col-md-3 mb-2">
+                <a href="{% url 'booking_list' %}?status=PENDING" class="btn btn-outline-warning w-100">
+                    <i class="fas fa-clock me-1"></i>Pending Bookings
+                </a>
+            </div>
+            <div class="col-md-3 mb-2">
+                <a href="{% url 'admin:SewaSmash_court_changelist' %}" class="btn btn-outline-info w-100">
+                    <i class="fas fa-table-tennis me-1"></i>Manage Courts
+                </a>
+            </div>
+            <div class="col-md-3 mb-2">
+                <a href="{% url 'admin:auth_user_changelist' %}" class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-users me-1"></i>Manage Users
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Bookings -->
+    <div class="recent-bookings">
+        <h4 class="mb-3">Recent Bookings</h4>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Court</th>
+                        <th>Date & Time</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in recent_bookings %}
+                    <tr>
+                        <td>#{{ booking.id }}</td>
+                        <td>{{ booking.customer_name }}</td>
+                        <td>{{ booking.court.name }}</td>
+                        <td>
+                            {{ booking.booking_date }}<br>
+                            <small class="text-muted">{{ booking.start_time }}</small>
+                        </td>
+                        <td>
+                            <span class="badge {% if booking.status == 'PENDING' %}bg-warning
+                                           {% elif booking.status == 'APPROVED' %}bg-success
+                                           {% else %}bg-danger{% endif %}">
+                                {{ booking.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{% url 'booking_detail' booking.id %}" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'admin_booking_edit' booking.id %}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4">
+                            <i class="fas fa-inbox text-muted"></i>
+                            <p class="mb-0 mt-2">No recent bookings found</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %} 
