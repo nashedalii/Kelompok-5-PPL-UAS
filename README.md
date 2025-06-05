@@ -33,9 +33,6 @@ source venv/bin/activate
 
 4. Install dependencies
 ```bash
-pip install django
-pip install django-crispy-forms
-pip install django-crispy-bootstrap4
 pip install -r requirements.txt
 ```
 
